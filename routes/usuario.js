@@ -101,7 +101,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 // ==============================================================
 
 //Se agregó el verifican tocken, para que cuando se cree un usuario pase por el verificatoken. Cómo segundo parámetro
-/
+
 app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
     var body = req.body;
