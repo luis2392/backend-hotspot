@@ -1,11 +1,9 @@
 var express = require('express');
-var bcrypt = require('bcryptjs');
-
 var mdAutenticacion = require('../middlewares/autenticacion');
 
 var app = express();
 
-var Usuario = require('../models/usuario');
+var Hospital = require('../models/hospital');
 
 // =============================================================
 // OBTENER TODOS LOS USUARIOS
@@ -17,41 +15,36 @@ app.get('/', (req, res, next) => {
     var desde = req.query.desde || 0;
     desde = Number(desde);
 
-    Usuario.find({}, 'nombre email img role')
+
+    Hospital.find({})
         .skip(desde)
         .limit(5)
+        .populate('usuario', 'nombre email') //Función de Mongoose para devolver los valores, los siguientes dos son los campos que muestre
         .exec(
-            (err, usuarios) => {
+            (err, hospitales) => {
 
                 if (err) {
                     return res.status(500).json({
                         ok: false,
-                        mensaje: ' cargando usuarios',
+                        mensaje: 'Error al cargar hospital',
                         errors: err
                     });
                 }
 
-                Usuario.count({}, (error, conteo) => {
-
+                Hospital.count({}, (err, conteo) => {
                     res.status(200).json({
                         ok: true,
-                        usuarios: usuarios,
+                        hospitales: hospitales,
                         total: conteo
-
                     });
-
-                })
-
-
-
+                });
             })
-
 })
 
 
 
 // =============================================================
-// aCTUALIZAR uSUARIOS
+// aCTUALIZAR HOSPITAL
 // ==============================================================
 
 // :id' lo coonvierte en campo obligatorio
@@ -61,45 +54,45 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var body = req.body; //Se obtiene de la instrucción body se utiliza para actualizar la data, similar a la que se ocupo en el post
 
 
-    Usuario.findById(id, (err, usuario) => {
+    Hospital.findById(id, (err, hospital) => {
 
         // Si hay un error, etonces enviara el error 500 de usuario no encontrado
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al buscar un usuario',
+                mensaje: 'Error al buscar un hospital',
                 errors: err
             });
         }
 
-        if (!usuario) {
+        if (!hospital) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Error el usuario con el id' + id + 'no existe',
-                errors: { message: 'No existe un usuario con ese ID' }
+                mensaje: 'Error el hospital con el id' + id + 'no existe',
+                errors: { message: 'No existe un hospital con ese ID' }
             });
         }
 
-        usuario.nombre = body.nombre;
-        usuario.email = body.email;
-        usuario.role = body.role;
+        hospital.nombre = body.nombre;
+        hospital.nombre = req.usuario._id; //Graba el campo de usuario que modifico
 
-        usuario.save((err, usuarioGuardado) => {
+
+        hospital.save((err, hospitalGuardado) => {
 
             //Se coloca ya que pueda ser que no nos envien los datos como son
             if (err) {
                 return res.status(400).json({
                     ok: false,
-                    mensaje: 'Error al actualizar usuario',
+                    mensaje: 'Error al actualizar hospital',
                     errors: err
                 });
             }
 
-            usuarioGuardado.password = ':)'; //PARA NO RETORNAR LA CONTRASEÑA
+
 
             res.status(200).json({
                 ok: true,
-                usuario: usuarioGuardado
+                hospital: hospitalGuardado
             });
 
         });
@@ -109,7 +102,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
 });
 
 // =============================================================
-// Crear un usuario
+// Crear un nuevo hospital
 //
 // ==============================================================
 
@@ -119,35 +112,30 @@ app.post('/', mdAutenticacion.verificaToken, (req, res) => {
 
     var body = req.body;
 
-    var usuario = new Usuario({
+    var hospital = new Hospital({
         nombre: body.nombre,
-        email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        img: body.img,
-        role: body.role
+        usuario: req.usuario._id
     });
 
-    usuario.save((err, usuarioGuardado) => {
+    hospital.save((err, hospitalGuardado) => {
 
         if (err) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'Error al crear usuario',
+                mensaje: 'Error al crear hospital',
                 errors: err
             });
         }
         res.status(201).json({
             ok: true,
-            usuario: usuarioGuardado,
-            usuariotoken: req.usuario
-
+            hospital: hospitalGuardado
         });
     });
 
 });
 
 // =============================================================
-// borrar un usuario por ID
+// borrar un hospital por ID
 // ==============================================================
 
 app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
@@ -155,30 +143,30 @@ app.delete('/:id', mdAutenticacion.verificaToken, (req, res) => {
     var id = req.params.id;
 
     //Usuario: es el modelo
-    Usuario.findByIdAndRemove(id, (err, usuarioBorrado) => {
+    Hospital.findByIdAndRemove(id, (err, hospitalborrado) => {
 
         // PRIMER LLAMADA AL CALL BACK err)
         if (err) {
             return res.status(500).json({
                 ok: false,
-                mensaje: 'Error al borrar usuario',
+                mensaje: 'Error al borrar hospital',
                 errors: err
             });
         }
 
         //VERIFICA SI VIENE UN USUARIO
-        if (!usuarioBorrado) {
+        if (!hospitalborrado) {
             return res.status(400).json({
                 ok: false,
-                mensaje: 'NO EXISTE UN USUARIO CON ESE ID',
-                errors: { mesagge: 'NO EXISTE UN USUARIO CON ESE ID' }
+                mensaje: 'NO EXISTE UN hospital CON ESE ID',
+                errors: { mesagge: 'NO EXISTE UN hospital CON ESE ID' }
             });
         }
 
         //Segunda llamada al callback 
         res.status(200).json({
             ok: true,
-            usuario: usuarioBorrado
+            hospital: hospitalborrado
         });
     });
 });
