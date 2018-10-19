@@ -14,6 +14,7 @@ app.use(function(req, res, next) {
     next();
 });
 
+
 //Body Parser
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -33,7 +34,7 @@ var imagenesRoutes = require('./routes/imagenes');
 mongoose.connection.openUri('mongodb://localhost:27017/HotspotDB', (err, res) => {
     if (err) throw err;
     console.log('BASE DE DATOS \x1b[32m%s\x1b[', 'en línea');
-})
+});
 
 //Server index Config (MOSTRAR IMAGENES)
 //var serveIndex = require('serve-index');

@@ -39,7 +39,7 @@
             console.log("Image URL: " + profile.getImageUrl());
             console.log("Email: " + profile.getEmail());
 
-            // The ID token you need to pass to your backend:
+            // Para no enviar el Id, sino el token de google, ya que podría falsificarse
             var id_token = googleUser.getAuthResponse().id_token;
             console.log("ID Token: " + id_token);
         };
