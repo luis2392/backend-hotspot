@@ -21,7 +21,7 @@ var mdAutenticacion = require('../middlewares/autenticacion');
 // ==========================================
 app.get('/renuevatoken', mdAutenticacion.verificaToken, (req, res) => {
 
-    var token = jwt.sign({ usuario: req.usuario }, SEED, { expiresIn: 14400 }); // 4 horas
+    var token = jwt.sign({ usuario: req.usuario }, SEED, { expiresIn: 18400 }); //  horas deduración
 
     res.status(200).json({
         ok: true,
